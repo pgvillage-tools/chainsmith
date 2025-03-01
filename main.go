@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -17,8 +18,16 @@ func main() {
 		log.Fatalf("Error generating Root CA: %v", err)
 	}
 
-	_, _, err = tls.GenerateCA(cfg.IntCAPath, cfg.IntCAPath+".key", rootCert, rootKey, false)
+	intermediateCert, intermediateKey, err := tls.GenerateCA(cfg.IntCAPath, cfg.IntCAPath+".key", rootCert, rootKey, false)
 	if err != nil {
 		log.Fatalf("Error generating Intermediate CA: %v", err)
+	}
+
+	if err := tls.GenerateCert("certs/server.crt", "certs/server.key", intermediateCert, intermediateKey, "server.local"); err != nil {
+		log.Fatalf("Error generating Server Certificate: %v", err)
+	}
+
+	if err := tls.GenerateCert("certs/client.crt", "certs/client.key", intermediateCert, intermediateKey, "client.local"); err != nil {
+		log.Fatalf("Error generating Client Certificate: %v", err)
 	}
 }
