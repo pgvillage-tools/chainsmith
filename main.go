@@ -18,16 +18,15 @@ func main() {
 		log.Fatalf("Error generating Root CA: %v", err)
 	}
 
-	intermediateCert, intermediateKey, err := tls.GenerateCA(cfg.IntCAPath, cfg.IntCAPath+".key", rootCert, rootKey, false)
+	intermediateCert, intermediateKey, err := tls.GenerateCA(cfg.IntermediateCAPath, cfg.IntermediateCAPath+".key", rootCert, rootKey, false)
 	if err != nil {
 		log.Fatalf("Error generating Intermediate CA: %v", err)
 	}
 
-	if err := tls.GenerateCert("certs/server.crt", "certs/server.key", intermediateCert, intermediateKey, "server.local"); err != nil {
-		log.Fatalf("Error generating Server Certificate: %v", err)
-	}
-
-	if err := tls.GenerateCert("certs/client.crt", "certs/client.key", intermediateCert, intermediateKey, "client.local"); err != nil {
-		log.Fatalf("Error generating Client Certificate: %v", err)
+	for name, certCfg := range cfg.Certificates {
+		log.Printf("Generating certificate for %s...", name)
+		if err := tls.GenerateCert(certCfg.CertPath, certCfg.KeyPath, intermediateCert, intermediateKey, certCfg.CommonName); err != nil {
+			log.Fatalf("Error generating %s certificate: %v", name, err)
+		}
 	}
 }
