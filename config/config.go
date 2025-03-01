@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"testing"
 	"gopkg.in/yaml.v3"
 )
 
@@ -30,3 +31,10 @@ func LoadConfig(filename string) (*Config, error) {
 	return &cfg, nil
 }
 
+// Unit Test for Config
+func TestLoadConfig(t *testing.T) {
+	_, err := LoadConfig("../configs/config.yml")
+	if err != nil {
+		t.Errorf("Failed to load config: %v", err)
+	}
+}
