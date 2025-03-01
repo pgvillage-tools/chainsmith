@@ -1,0 +1,15 @@
+# configs/config.yml
+# Chainsmith Configuration File
+
+root_ca_path: "certs/rootCA.crt"
+intermediate_ca_path: "certs/intermediateCA.crt"
+
+certificates:
+  server:
+    cert_path: "certs/server.crt"
+    key_path: "certs/server.key"
+    common_name: "server.local"
+  client:
+    cert_path: "certs/client.crt"
+    key_path: "certs/client.key"
+    common_name: "client.local"
