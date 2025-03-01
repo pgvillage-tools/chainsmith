@@ -7,7 +7,6 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/big"
 	"os"
@@ -38,7 +37,7 @@ func GenerateRootCA() error {
 			Country:            []string{"NL"},
 			Organization:       []string{"Mannem Solutions"},
 			OrganizationalUnit: []string{"Chainsmith TLS chain maker"},
-			CommonName:        "chainsmith",
+			CommonName:         "chainsmith",
 		},
 		NotBefore:             now,
 		NotAfter:              now.Add(3650 * 24 * time.Hour),
@@ -56,11 +55,11 @@ func GenerateRootCA() error {
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
 
-	if err := ioutil.WriteFile(CertFilePath, certPEM, 0644); err != nil {
+	if err := os.WriteFile(CertFilePath, certPEM, 0644); err != nil {
 		return fmt.Errorf("failed to write cert file: %v", err)
 	}
 
-	if err := ioutil.WriteFile(KeyFilePath, keyPEM, 0600); err != nil {
+	if err := os.WriteFile(KeyFilePath, keyPEM, 0600); err != nil {
 		return fmt.Errorf("failed to write key file: %v", err)
 	}
 
