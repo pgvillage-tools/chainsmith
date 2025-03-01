@@ -2,7 +2,7 @@ package config
 
 import (
 	"os"
-	"log"
+//	"log"
 	"gopkg.in/yaml.v3"
 )
 
