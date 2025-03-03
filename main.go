@@ -23,7 +23,7 @@ var configPath string
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "configs/config.yml", "Path to the config file")
-	rootCmd.AddCommand(issueCmd)
+	rootCmd.AddCommand(issueCmd, listCmd, revokeCmd)
 }
 
 var issueCmd = &cobra.Command{
@@ -31,6 +31,50 @@ var issueCmd = &cobra.Command{
 	Short: "Generate CA and certificates based on the configuration file",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return run(configPath)
+	},
+}
+
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List all issued certificates",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cfg, err := config.LoadConfig(configPath)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Issued Certificates:")
+		for name, certCfg := range cfg.Certificates {
+			fmt.Printf("- %s (%s)\n", name, certCfg.CommonName)
+		}
+		return nil
+	},
+}
+
+var revokeCmd = &cobra.Command{
+	Use:   "revoke <certificate_name>",
+	Short: "Revoke a certificate",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		certName := args[0]
+		cfg, err := config.LoadConfig(configPath)
+		if err != nil {
+			return err
+		}
+
+		certCfg, exists := cfg.Certificates[certName]
+		if !exists {
+			return fmt.Errorf("Certificate '%s' not found", certName)
+		}
+
+		if err := os.Remove(certCfg.CertPath); err != nil {
+			return fmt.Errorf("Failed to delete certificate file: %v", err)
+		}
+		if err := os.Remove(certCfg.KeyPath); err != nil {
+			return fmt.Errorf("Failed to delete key file: %v", err)
+		}
+
+		fmt.Printf("Certificate '%s' revoked successfully.\n", certName)
+		return nil
 	},
 }
 
