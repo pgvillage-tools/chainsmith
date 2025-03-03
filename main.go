@@ -1,10 +1,38 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+
+	"github.com/spf13/cobra"
+
 	"chainsmith/config"
 	"chainsmith/tls"
 )
+
+var rootCmd = &cobra.Command{
+	Use:   "chainsmith",
+	Short: "Chainsmith - A simple certificate chain manager",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Use --help to see available commands.")
+	},
+}
+
+var configPath string
+
+func init() {
+	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "configs/config.yml", "Path to the config file")
+	rootCmd.AddCommand(issueCmd)
+}
+
+var issueCmd = &cobra.Command{
+	Use:   "issue",
+	Short: "Generate CA and certificates based on the configuration file",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return run(configPath)
+	},
+}
 
 func run(configPath string) error {
 	cfg, err := config.LoadConfig(configPath)
@@ -33,7 +61,8 @@ func run(configPath string) error {
 }
 
 func main() {
-	if err := run("configs/config.yml"); err != nil {
-		log.Fatalf("Application failed: %v", err)
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
