@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"chainsmith/config"
 	"chainsmith/tls"
@@ -19,10 +20,9 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-var configPath string
-
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "configs/config.yml", "Path to the config file")
+	rootCmd.PersistentFlags().String("config", "configs/config.yml", "Path to the config file")
+	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 	rootCmd.AddCommand(issueCmd, listCmd, revokeCmd)
 }
 
@@ -30,7 +30,7 @@ var issueCmd = &cobra.Command{
 	Use:   "issue",
 	Short: "Generate CA and certificates based on the configuration file",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return run(configPath)
+		return run()
 	},
 }
 
@@ -38,7 +38,7 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all issued certificates",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg, err := config.LoadConfig(configPath)
+		cfg, err := loadConfig()
 		if err != nil {
 			return err
 		}
@@ -56,7 +56,7 @@ var revokeCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		certName := args[0]
-		cfg, err := config.LoadConfig(configPath)
+		cfg, err := loadConfig()
 		if err != nil {
 			return err
 		}
@@ -78,8 +78,20 @@ var revokeCmd = &cobra.Command{
 	},
 }
 
-func run(configPath string) error {
-	cfg, err := config.LoadConfig(configPath)
+func loadConfig() (*config.Config, error) {
+	viper.SetConfigFile(viper.GetString("config"))
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, err
+	}
+	var cfg config.Config
+	if err := viper.Unmarshal(&cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
+func run() error {
+	cfg, err := loadConfig()
 	if err != nil {
 		return err
 	}
