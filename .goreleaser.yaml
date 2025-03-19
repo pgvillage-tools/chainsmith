@@ -16,7 +16,7 @@ before:
     - go generate ./...
 
 builds:
-  - id: pgcustodian
+  - id: chainsmith
     env:
       - CGO_ENABLED=0
     goos:
@@ -29,8 +29,8 @@ builds:
     ignore:
       - goos: windows
         goarch: arm64
-    main: ./cmd/pgcustodian
-    binary: pgcustodian
+    main: ./cmd/chainsmith
+    binary: chainsmith
     ldflags:
       - -s -w -X "internal.appVersion={{.Version}}"
 

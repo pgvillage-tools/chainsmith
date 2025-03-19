@@ -8,7 +8,7 @@ assignees: ''
 
 # Bug Report
 
-**PGcustodian version:**
+**Chainsmith version:**
 
 <!-- Please specify commit or tag version. -->
 
