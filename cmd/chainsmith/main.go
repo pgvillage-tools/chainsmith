@@ -21,7 +21,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().String("config", "configs/config.yml", "Path to the config file")
+	rootCmd.PersistentFlags().String("config", os.Getenv("CMG_CONFIGFILE"), "Path to the config file")
 	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 	rootCmd.AddCommand(issueCmd, listCmd, revokeCmd)
 }
@@ -30,7 +30,11 @@ var issueCmd = &cobra.Command{
 	Use:   "issue",
 	Short: "Generate CA and certificates based on the configuration file",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return run()
+		config, err := loadConfig(viper.GetString("config"))
+		if err != nil {
+			return err
+		}
+		return run(*config)
 	},
 }
 
@@ -38,7 +42,7 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all issued certificates",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg, err := loadConfig()
+		cfg, err := loadConfig(viper.GetString("config"))
 		if err != nil {
 			return err
 		}
@@ -56,7 +60,7 @@ var revokeCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		certName := args[0]
-		cfg, err := loadConfig()
+		cfg, err := loadConfig(viper.GetString("config"))
 		if err != nil {
 			return err
 		}
@@ -78,8 +82,8 @@ var revokeCmd = &cobra.Command{
 	},
 }
 
-func loadConfig() (*config.Config, error) {
-	viper.SetConfigFile(viper.GetString("config"))
+func loadConfig(configPath string) (*config.Config, error) {
+	viper.SetConfigFile(configPath)
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, err
 	}
@@ -90,12 +94,7 @@ func loadConfig() (*config.Config, error) {
 	return &cfg, nil
 }
 
-func run() error {
-	cfg, err := loadConfig()
-	if err != nil {
-		return err
-	}
-
+func run(cfg config.Config) error {
 	rootCert, rootKey, err := tls.GenerateCA(cfg.RootCAPath, cfg.RootCAPath+".key", nil, nil, true)
 	if err != nil {
 		return err

@@ -1,33 +1,41 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"path"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestMainExecution(t *testing.T) {
-	tempConfig := "test_config.yml"
-	configContent := `
-root_ca_path: "test_rootCA.crt"
-intermediate_ca_path: "test_intermediateCA.crt"
+func TestRun(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "cmd_run")
+	defer os.RemoveAll(tmpDir)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, tmpDir)
+	configPath := path.Join(tmpDir, "config.yml")
+	configContent := fmt.Sprintf(`
+root_ca_path: "%[1]s/test_rootCA.crt"
+intermediate_ca_path: "%[1]s/test_intermediateCA.crt"
 certificates:
   server:
-    cert_path: "test_server.crt"
-    key_path: "test_server.key"
-    common_name: "server.local"
+    cert_path: "%[1]s/test_server.crt"
+    key_path: "%[1]s/test_server.key"
+    common_name: "%[1]s/server.local"
   client:
-    cert_path: "test_client.crt"
-    key_path: "test_client.key"
-    common_name: "client.local"
-`
+    cert_path: "%[1]s/test_client.crt"
+    key_path: "%[1]s/test_client.key"
+    common_name: "%[1]s/client.local"
+`, tmpDir)
 
-	err := os.WriteFile(tempConfig, []byte(configContent), 0644)
-	if err != nil {
-		t.Fatalf("Failed to create test config file: %v", err)
-	}
-	defer os.Remove(tempConfig)
+	err = os.WriteFile(configPath, []byte(configContent), 0644)
+	assert.NoError(t, err)
 
-	if err := run(); err != nil {
+	config, err := loadConfig(configPath)
+	require.NoError(t, err)
+	if err := run(*config); err != nil {
 		t.Fatalf("Application execution failed: %v", err)
 	}
 }
