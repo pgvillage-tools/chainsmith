@@ -22,7 +22,10 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().String("config", os.Getenv("CMG_CONFIGFILE"), "Path to the config file")
-	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
+	err := viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
+	if err != nil {
+		panic(fmt.Errorf("init failed: %w", err).Error())
+	}
 	rootCmd.AddCommand(issueCmd, listCmd, revokeCmd)
 }
 
