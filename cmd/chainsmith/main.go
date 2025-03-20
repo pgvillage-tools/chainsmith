@@ -70,14 +70,14 @@ var revokeCmd = &cobra.Command{
 
 		certCfg, exists := cfg.Certificates[certName]
 		if !exists {
-			return fmt.Errorf("Certificate '%s' not found", certName)
+			return fmt.Errorf("certificate '%s' not found", certName)
 		}
 
 		if err := os.Remove(certCfg.CertPath); err != nil {
-			return fmt.Errorf("Failed to delete certificate file: %v", err)
+			return fmt.Errorf("failed to delete certificate file: %v", err)
 		}
 		if err := os.Remove(certCfg.KeyPath); err != nil {
-			return fmt.Errorf("Failed to delete key file: %v", err)
+			return fmt.Errorf("failed to delete key file: %v", err)
 		}
 
 		fmt.Printf("Certificate '%s' revoked successfully.\n", certName)
