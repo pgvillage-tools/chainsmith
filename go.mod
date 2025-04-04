@@ -1,4 +1,4 @@
-module github.com/dbyond-nl/chainsmithgo
+module github.com/pgvillage-tools/chainsmith
 
 go 1.24.0
 

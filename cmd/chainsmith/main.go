@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/dbyond-nl/chainsmithgo/internal/config"
-	"github.com/dbyond-nl/chainsmithgo/internal/version"
-	"github.com/dbyond-nl/chainsmithgo/pkg/tls"
+	"github.com/pgvillage-tools/chainsmith/internal/config"
+	"github.com/pgvillage-tools/chainsmith/internal/version"
+	"github.com/pgvillage-tools/chainsmith/pkg/tls"
 )
 
 var rootCmd = &cobra.Command{

@@ -3,7 +3,7 @@ package version_test
 import (
 	"testing"
 
-	"github.com/dbyond-nl/chainsmithgo/internal/version"
+	"github.com/pgvillage-tools/chainsmith/internal/version"
 	"github.com/stretchr/testify/assert"
 )
 
