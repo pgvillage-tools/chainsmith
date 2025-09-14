@@ -15,13 +15,10 @@ var stringToKU = map[string]x509.KeyUsage{
 	"keyEncipherment":  x509.KeyUsageKeyEncipherment,
 }
 
-// DefaultKeyUsages is a list of the default KeyUsage objects, to be used when
-// none are set for the CA object
-var DefaultKeyUsages = KeyUsages{
-	"dataEncipherment",
-	"digitalSignature",
-	"keyEncipherment",
-}
+// DefaultKeyUsage is used when no KeyUsages are set
+var DefaultKeyUsage = x509.KeyUsageDataEncipherment |
+	x509.KeyUsageDigitalSignature |
+	x509.KeyUsageKeyEncipherment
 
 // AsKeyUsage converts a internal KeyUsages object to a x509.KeyUsage value
 func (eks KeyUsages) AsKeyUsage() (x509.KeyUsage, error) {

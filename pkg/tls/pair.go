@@ -1,15 +1,13 @@
 package tls
 
-import "time"
-
 // Pairs is a collection of `certificate and private key` pairs
 type Pairs map[string]Pair
 
 // Generate will generate a cert and private key.
 // We use copy on write and return  the copy
-func (p Pairs) Generate(subject Subject, expiry time.Duration) (Pairs, error) {
+func (p Pairs) Generate() (Pairs, error) {
 	for name, pair := range p {
-		err := pair.Generate(subject.SetCommonName(name), expiry)
+		err := pair.Generate()
 		if err != nil {
 			return p, err
 		}
@@ -61,12 +59,27 @@ type Pair struct {
 	PrivateKey PrivateKey `json:"private_key"`
 }
 
+// Process will do all that is required for a pair, e.a. generate, sign,
+// encode and save
+func (p *Pair) Process(signer Pair) error {
+	if err := p.Generate(); err != nil {
+		return err
+	}
+	if err := p.Sign(signer); err != nil {
+		return err
+	}
+	if err := p.Encode(); err != nil {
+		return err
+	}
+	return p.Save()
+}
+
 // Generate will generate a cert and private key
-func (p *Pair) Generate(subject Subject, expiry time.Duration) error {
+func (p *Pair) Generate() error {
 	if err := p.PrivateKey.Generate(); err != nil {
 		return nil
 	}
-	if err := p.Cert.Generate(subject, expiry); err != nil {
+	if err := p.Cert.Generate(); err != nil {
 		return err
 	}
 	return nil

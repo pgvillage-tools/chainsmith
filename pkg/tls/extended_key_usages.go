@@ -28,10 +28,10 @@ var stringToEKU = map[string]x509.ExtKeyUsage{
 
 // DefaultExtendedKeyUsages is a list of extended Key usages to be used when not
 // specified in the config
-var DefaultExtendedKeyUsages = ExtKeyUsages{
-	"clientAuth",
-	"emailProtection",
-	"serverAuth",
+var DefaultExtendedKeyUsages = []x509.ExtKeyUsage{
+	x509.ExtKeyUsageClientAuth,
+	x509.ExtKeyUsageEmailProtection,
+	x509.ExtKeyUsageServerAuth,
 }
 
 // AsEKeyUsages converts a ExtKeyUsages into a list of x509.ExtKeyUsage's

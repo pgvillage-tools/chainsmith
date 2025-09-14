@@ -7,8 +7,11 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	"net"
+	"net/url"
 	"os"
 	"path"
+	"regexp"
 	"time"
 )
 
@@ -17,31 +20,97 @@ type Certs []Cert
 
 // Cert is an object representing a certificate
 type Cert struct {
-	cert  *x509.Certificate
-	PEM   []byte `json:"pem"`
-	Path  string `json:"path"`
-	dirty bool
+	cert           *x509.Certificate
+	Subject        *Subject           `json:"subject"`
+	Expiry         time.Duration      `json:"expiry"`
+	KeyUsage       x509.KeyUsage      `json:"key_usage"`
+	ExtKeyUsage    []x509.ExtKeyUsage `json:"extended_key_usage"`
+	IsCa           bool               `json:"is_ca"`
+	AlternateNames []string           `json:"subject_alternate_names"`
+	PEM            []byte             `json:"pem"`
+	Path           string             `json:"path"`
+	dirty          bool
+}
+
+type altNames struct {
+	dnsNames       []string
+	eMailAddresses []string
+	ipAddresses    []net.IP
+	uris           []*url.URL
+}
+
+func splitAlternateNames(alternateNames []string) (
+	subjectAltNames *altNames,
+	err error,
+) {
+	subjectAltNames = &altNames{}
+	mailRE := regexp.MustCompile(
+		`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	dnsRE := regexp.MustCompile(
+		`^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$`)
+	for _, alternateName := range alternateNames {
+		if ip := net.ParseIP(alternateName); ip != nil {
+			subjectAltNames.ipAddresses = append(subjectAltNames.ipAddresses, ip)
+		} else if uri, err := url.Parse(alternateName); err != nil {
+			subjectAltNames.uris = append(subjectAltNames.uris, uri)
+		} else if mailRE.Match([]byte(alternateName)) {
+			subjectAltNames.eMailAddresses = append(
+				subjectAltNames.eMailAddresses, alternateName)
+		} else if dnsRE.Match([]byte(alternateName)) {
+			subjectAltNames.dnsNames = append(
+				subjectAltNames.dnsNames, alternateName)
+		} else {
+			return nil, fmt.Errorf(
+				"%s is not a known format for a dns name, email adres, ip adres or uri",
+				alternateName,
+			)
+		}
+	}
+	return subjectAltNames, nil
+}
+
+// SetDefaults will set default values when none is set
+func (c *Cert) SetDefaults() {
+	if c.KeyUsage == x509.KeyUsage(0) {
+		c.KeyUsage = DefaultKeyUsage
+	}
+	if len(c.ExtKeyUsage) == 0 {
+		c.ExtKeyUsage = DefaultExtendedKeyUsages
+	}
+	if c.Expiry < 24*time.Hour {
+		c.Expiry = 365 * 24 * time.Hour
+	}
+	if c.Subject == nil {
+		c.Subject = &DefaultSubject
+	}
 }
 
 // Generate will generate a Certificate which still needs to be signed (a CSR)
-func (c *Cert) Generate(subject Subject, expiry time.Duration) error {
+func (c *Cert) Generate() error {
 	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1),
 		128))
 	if err != nil {
 		return fmt.Errorf("failed to generate serial number: %v", err)
 	}
-	if expiry < 24*time.Hour {
-		expiry = 365 * 24 * time.Hour
+
+	altNames, err := splitAlternateNames(c.AlternateNames)
+	if err != nil {
+		return err
 	}
 
 	now := time.Now()
 	c.cert = &x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject:      subject.AsPkixName(),
-		NotBefore:    now,
-		NotAfter:     now.Add(expiry),
-		KeyUsage:     x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+		SerialNumber:   serialNumber,
+		Subject:        c.Subject.AsPkixName(),
+		NotBefore:      now,
+		NotAfter:       now.Add(c.Expiry),
+		KeyUsage:       c.KeyUsage,
+		ExtKeyUsage:    c.ExtKeyUsage,
+		IsCA:           c.IsCa,
+		DNSNames:       altNames.dnsNames,
+		EmailAddresses: altNames.eMailAddresses,
+		IPAddresses:    altNames.ipAddresses,
+		URIs:           altNames.uris,
 	}
 	c.PEM = nil
 	return nil

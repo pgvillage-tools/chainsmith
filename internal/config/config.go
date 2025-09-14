@@ -14,10 +14,12 @@ type Config struct {
 	Chain              *tls.Chain                   `json:"chain"`
 	RootCAPath         string                       `json:"root_ca_path"`
 	RootExpiry         time.Duration                `json:"root_expiry"`
+	RootKeyUsages      []string                     `json:"root_key_usages"`
+	RootExtraKeyUsages []string                     `json:"root_extra_key_usages"`
+	RootSubject        tls.Subject                  `json:"subject"`
 	IntermediateCAPath string                       `json:"intermediate_ca_path"`
 	Certificates       map[string]CertificateConfig `json:"certificates"`
 	Intermediates      tls.ClassicIntermediates     `json:"intermediates"`
-	Subject            tls.Subject                  `json:"subject"`
 	TmpDir             string                       `json:"tmpdir"`
 }
 
@@ -76,7 +78,7 @@ func (c Config) AsChain() *tls.Chain {
 		return c.Chain
 	}
 	return &tls.Chain{
-		Subject:       c.Subject,
+		Subject:       c.RootSubject,
 		Intermediates: c.Intermediates.AsIntermediates(),
 		Expiry:        c.RootExpiry,
 		Store:         c.TmpDir,

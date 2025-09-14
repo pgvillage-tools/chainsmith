@@ -76,9 +76,9 @@ intermediates:
 	assert.Equal(t, client.KeyPath, tmpDir+"/test_client.key")
 	assert.Equal(t, client.CommonName, tmpDir+"/client.local")
 
-	assert.Len(t, config.Subject, 2)
-	assert.Contains(t, config.Subject, "C")
-	assert.Contains(t, config.Subject, "CN")
+	assert.Len(t, config.RootSubject, 2)
+	assert.Contains(t, config.RootSubject, "C")
+	assert.Contains(t, config.RootSubject, "CN")
 
 	assert.Len(t, config.Intermediates, 2)
 	serverInt := config.Intermediates[0]

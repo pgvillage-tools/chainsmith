@@ -6,7 +6,7 @@ import (
 
 // Chain can hold all configuration for a chain.
 type Chain struct {
-	ca            Pair
+	Root          Pair          `json:"root"`
 	Subject       Subject       `json:"subject"`
 	Intermediates Intermediates `json:"intermediates"`
 	Expiry        time.Duration `json:"expiry"`
@@ -27,20 +27,39 @@ type Key struct {
 // InitializeCA can be used to generate, build and save the CA cert and private
 // key
 func (c *Chain) InitializeCA() error {
-	if err := c.ca.Generate(c.Subject, c.Expiry); err != nil {
+	c.Root.Cert.SetDefaults()
+	c.Root.Cert.IsCa = true
+	c.Root.Cert.AlternateNames = nil
+	if err := c.Root.Generate(); err != nil {
 		return err
-	} else if err := c.ca.Sign(c.ca); err != nil {
+	} else if err := c.Root.Sign(c.Root); err != nil {
 		return err
-	} else if err := c.ca.Encode(); err != nil {
+	} else if err := c.Root.Encode(); err != nil {
 		return err
 	}
-	return c.ca.Save()
+	return c.Root.Save()
 }
 
-// InitializeIntermediates can be used to initiaze all initermediates belonging
-// to this chain
-func (c *Chain) InitializeIntermediates() error {
-	var err error
+// InitializeIntermediates can be used to inititialize all initermediates
+// belonging to this chain
+func (c *Chain) InitializeIntermediates() (err error) {
 	c.Intermediates, err = c.Intermediates.Initialize()
 	return err
+}
+
+// ChainStructure is a type that will be returned by the chain.Structure method
+type ChainStructure struct {
+	Certs map[string]map[string]string `json:"certs"`
+	Keys  map[string]map[string]string `json:"private_keys"`
+}
+
+// Structure will convert a chain into a structure that is easy convertible to
+// YAML
+func (c *Chain) Structure() ChainStructure {
+	structure := ChainStructure{}
+	for iName, intermediate := range c.Intermediates {
+		for cName, child := range intermediate.children {
+
+		}
+	}
 }

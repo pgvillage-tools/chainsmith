@@ -10,15 +10,23 @@ type Intermediates map[string]Intermediate
 // Initialize can be used to generate, build and save certificates and private
 // keys for all servers and clients of all intermediates
 func (i Intermediates) Initialize() (Intermediates, error) {
+	for _, intermediate := range i {
+		if err := intermediate.InitializeClients(); err != nil {
+			return i, err
+		}
+		if err := intermediate.InitializeServers(); err != nil {
+			return i, err
+		}
+	}
+	return i, nil
 }
 
 // Intermediate holds the config of an intermediate, which can be either Server
 // or Client (or both)
 type Intermediate struct {
-	// intermediateCert is the cert/privatekey of this intermediate
-	intermediateCert Pair
-	// certs is a collection of all certs signed by this intermediate
-	certs             Pairs
+	cert              Pair
+	Subject           *Subject `json:"subject"`
+	children          Pairs
 	Expiry            time.Duration `json:"root_expiry"`
 	ExtendedKeyUsages ExtKeyUsages  `json:"extendedKeyUsages"`
 	KeyUsages         KeyUsages     `json:"keyUsages"`
@@ -26,22 +34,55 @@ type Intermediate struct {
 	Clients           []string      `json:"clients"`
 }
 
-// Initialize can be used to generate, build and save certificates and private
-// keys for all servers and clients of an intermediate
-func (i Intermediate) Initialize() error {
-
-}
-
 // InitializeServers can be used to generate, build and save certificates and
 // private keys for all servers an intermediate
-func (i Intermediate) InitializeServers() error {
-
+func (i *Intermediate) InitializeServers() error {
+	if i.children == nil {
+		i.children = Pairs{}
+	}
+	for server, addresses := range i.Servers {
+		subject := i.Subject.SetCommonName(server)
+		pair := Pair{
+			Cert: Cert{
+				Subject:        &subject,
+				Expiry:         i.Expiry,
+				KeyUsage:       i.cert.Cert.KeyUsage,
+				ExtKeyUsage:    i.cert.Cert.ExtKeyUsage,
+				AlternateNames: addresses,
+			},
+		}
+		err := pair.Process(i.cert)
+		if err != nil {
+			return err
+		}
+		i.children[server] = pair
+	}
+	return nil
 }
 
 // InitializeClients can be used to generate, build and save certificates and
 // private keys for all clients of an intermediate
-func (i Intermediate) InitializeClients() error {
-
+func (i *Intermediate) InitializeClients() error {
+	if i.children == nil {
+		i.children = Pairs{}
+	}
+	for _, client := range i.Clients {
+		subject := i.Subject.SetCommonName(client)
+		pair := Pair{
+			Cert: Cert{
+				Subject:     &subject,
+				Expiry:      i.Expiry,
+				KeyUsage:    i.cert.Cert.KeyUsage,
+				ExtKeyUsage: i.cert.Cert.ExtKeyUsage,
+			},
+		}
+		err := pair.Process(i.cert)
+		if err != nil {
+			return err
+		}
+		i.children[client] = pair
+	}
+	return nil
 }
 
 // ClassicIntermediates is a classical approach (list of structs with name in
