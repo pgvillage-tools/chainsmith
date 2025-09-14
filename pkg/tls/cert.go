@@ -1,56 +1,80 @@
-// tls/cert.go
+// Package tls takes care of all tls actions for a chain
 package tls
 
 import (
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
 	"math/big"
 	"os"
+	"path"
 	"time"
 )
 
-func GenerateCert(certPath, keyPath string, caCert *x509.Certificate, caKey *rsa.PrivateKey, commonName string) error {
-	priv, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return fmt.Errorf("failed to generate private key: %v", err)
-	}
+// Certs is a collection of Cert objects
+type Certs []Cert
 
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+// Cert is an object representing a certificate
+type Cert struct {
+	cert  *x509.Certificate
+	PEM   []byte `json:"pem"`
+	Path  string `json:"path"`
+	dirty bool
+}
+
+// Generate will generate a Certificate which still needs to be signed (a CSR)
+func (c *Cert) Generate(subject Subject, expiry time.Duration) error {
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1),
+		128))
 	if err != nil {
 		return fmt.Errorf("failed to generate serial number: %v", err)
 	}
+	if expiry < 24*time.Hour {
+		expiry = 365 * 24 * time.Hour
+	}
 
 	now := time.Now()
-	tmpl := &x509.Certificate{
+	c.cert = &x509.Certificate{
 		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			CommonName: commonName,
-		},
+		Subject:      subject.AsPkixName(),
 		NotBefore:    now,
-		NotAfter:     now.Add(365 * 24 * time.Hour),
+		NotAfter:     now.Add(expiry),
 		KeyUsage:     x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 	}
+	c.PEM = nil
+	return nil
+}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, tmpl, caCert, &priv.PublicKey, caKey)
+// Sign can be used to sign the cert (and will write to the PEM byte array)
+func (c *Cert) Sign(privateKey PrivateKey, signer Pair) error {
+	pubKey, err := privateKey.PublicKey()
+	if err != nil {
+		return err
+	}
+	certDER, err := x509.CreateCertificate(rand.Reader, c.cert, signer.Cert.cert,
+		&pubKey, signer.PrivateKey.key)
 	if err != nil {
 		return fmt.Errorf("failed to create certificate: %v", err)
 	}
 
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
+	c.PEM = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+	return nil
+}
 
-	if err := os.WriteFile(certPath, certPEM, 0644); err != nil {
-		return fmt.Errorf("failed to write cert file: %v", err)
+// Save can be used to save a Cert to disk
+func (c *Cert) Save() error {
+	if !c.dirty || c.Path == "" || len(c.PEM) == 0 {
+		return nil
 	}
-
-	if err := os.WriteFile(keyPath, keyPEM, 0600); err != nil {
+	dir := path.Dir(c.Path)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return fmt.Errorf("failed to create path %s: %v", dir, err)
+	}
+	if err := os.WriteFile(c.Path, c.PEM, 0600); err != nil {
 		return fmt.Errorf("failed to write key file: %v", err)
 	}
-
+	c.dirty = false
 	return nil
 }
