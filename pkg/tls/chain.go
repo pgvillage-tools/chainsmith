@@ -56,10 +56,19 @@ type ChainStructure struct {
 // Structure will convert a chain into a structure that is easy convertible to
 // YAML
 func (c *Chain) Structure() ChainStructure {
-	structure := ChainStructure{}
-	for iName, intermediate := range c.Intermediates {
-		for cName, child := range intermediate.children {
-
-		}
+	structure := ChainStructure{
+		Certs: map[string]map[string]string{},
+		Keys:  map[string]map[string]string{},
 	}
+	for iName, intermediate := range c.Intermediates {
+		certs := map[string]string{}
+		keys := map[string]string{}
+		for cName, child := range intermediate.children {
+			certs[cName] = string(child.Cert.PEM)
+			keys[cName] = string(child.PrivateKey.PEM)
+		}
+		structure.Certs[iName] = certs
+		structure.Keys[iName] = keys
+	}
+	return structure
 }

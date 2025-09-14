@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/goccy/go-yaml"
 	"github.com/pgvillage-tools/chainsmith/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -16,22 +17,12 @@ var issueCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		chain := cfg.AsChain()
-		if err := chain.InitializeCA(); err != nil {
-			return err
-		}
-		if err := chain.InitializeIntermediates(); err != nil {
-			return err
-		}
-		out, err := chain.AsYaml()
+		out, err := issue(cfg)
 		if err != nil {
 			return err
 		}
 		_, err = fmt.Print(out)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	},
 }
 
@@ -42,7 +33,14 @@ type certs struct {
 type intBodies map[string]bodies
 type bodies map[string]string
 
-func issue(cfg config.Config) {
+func issue(cfg *config.Config) ([]byte, error) {
 	chain := cfg.AsChain()
-	chain.InitializeIntermediates()
+	if err := chain.InitializeCA(); err != nil {
+		return nil, err
+	}
+	if err := chain.InitializeIntermediates(); err != nil {
+		return nil, err
+	}
+	structure := chain.Structure()
+	return yaml.Marshal(structure)
 }

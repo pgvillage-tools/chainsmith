@@ -18,7 +18,9 @@ var _ = Describe("cmd/chainsmith/issue", func() {
 	})
 	Context("When issuing certificates", func() {
 		It("Should allow creation of a valid Paas", func() {
-			issue(cfg)
+			out, err := issue(&cfg)
+			Expect(err).Error().NotTo(HaveOccurred())
+			Expect(out).NotTo(BeEmpty())
 		})
 	})
 })

@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/viper"
 
+	"github.com/goccy/go-yaml"
 	"github.com/pgvillage-tools/chainsmith/internal/config"
 )
 
@@ -20,14 +21,16 @@ func init() {
 }
 
 func loadConfig(configPath string) (*config.Config, error) {
-	viper.SetConfigFile(configPath)
-	if err := viper.ReadInConfig(); err != nil {
+	yamlFile, err := os.ReadFile(configPath)
+	if err != nil {
 		return nil, err
 	}
 	var cfg config.Config
-	if err := viper.Unmarshal(&cfg); err != nil {
+	err = yaml.Unmarshal(yamlFile, cfg)
+	if err != nil {
 		return nil, err
 	}
+
 	return &cfg, nil
 }
 
