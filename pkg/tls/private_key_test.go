@@ -61,4 +61,19 @@ var _ = Describe("PrivateKey", func() {
 			Expect(string(PEM)).To(HaveSuffix("-----END RSA PRIVATE KEY-----\n"))
 		})
 	})
+	Context("When requesting public key from private key", Ordered, func() {
+		It("Should succeed when properly initialized", func() {
+			var key PrivateKey
+			Expect(key.Generate()).Error().NotTo(HaveOccurred())
+			pub, err := key.PublicKey()
+			Expect(err).Error().NotTo(HaveOccurred())
+			Expect(pub.Size()).NotTo(Equal(0))
+		})
+		It("Should raise error when not properly initialized", func() {
+			var key PrivateKey
+			//Expect(key.Generate()).Error().NotTo(HaveOccurred())
+			_, err := key.PublicKey()
+			Expect(err).Error().To(HaveOccurred())
+		})
+	})
 })

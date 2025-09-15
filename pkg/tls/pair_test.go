@@ -13,7 +13,18 @@ var _ = Describe("Pair", Ordered, func() {
 	root.Cert.SetDefaults(DefaultSubject, DefaultExpiry, DefaultKeyUsage, DefaultExtendedKeyUsages)
 	root.Cert.IsCa = true
 	var (
-		tmpDir    string
+		tmpDir     string
+		firstPair  Pair
+		secondPair Pair
+		pairs      Pairs
+	)
+	BeforeAll(func() {
+		var err error
+		tmpDir, err = os.MkdirTemp("", "pairTest")
+		Expect(err).Error().NotTo(HaveOccurred())
+		Expect(root.Generate()).Error().NotTo(HaveOccurred())
+		Expect(root.Encode()).Error().NotTo(HaveOccurred())
+		Expect(root.Sign(root)).Error().NotTo(HaveOccurred())
 		firstPair = Pair{
 			Cert: Cert{
 				Path: path.Join(tmpDir, "first", "cert.pem"),
@@ -24,30 +35,22 @@ var _ = Describe("Pair", Ordered, func() {
 			Cert:       Cert{Path: path.Join(tmpDir, "second", "cert.pem")},
 			PrivateKey: PrivateKey{Path: path.Join(tmpDir, "second", "key.pem")},
 		}
-	)
-	firstPair.Cert.SetDefaults(
-		root.Cert.Subject.SetCommonName("first"),
-		root.Cert.Expiry,
-		root.Cert.KeyUsage,
-		root.Cert.ExtKeyUsage,
-	)
-	secondPair.Cert.SetDefaults(
-		root.Cert.Subject.SetCommonName("second"),
-		root.Cert.Expiry,
-		root.Cert.KeyUsage,
-		root.Cert.ExtKeyUsage,
-	)
-	var pairs = Pairs{
-		"first":  firstPair,
-		"second": secondPair,
-	}
-	BeforeAll(func() {
-		var err error
-		tmpDir, err = os.MkdirTemp("", "pairTest")
-		Expect(err).Error().NotTo(HaveOccurred())
-		Expect(root.Generate()).Error().NotTo(HaveOccurred())
-		Expect(root.Encode()).Error().NotTo(HaveOccurred())
-		Expect(root.Sign(root)).Error().NotTo(HaveOccurred())
+		firstPair.Cert.SetDefaults(
+			root.Cert.Subject.SetCommonName("first"),
+			root.Cert.Expiry,
+			root.Cert.KeyUsage,
+			root.Cert.ExtKeyUsage,
+		)
+		secondPair.Cert.SetDefaults(
+			root.Cert.Subject.SetCommonName("second"),
+			root.Cert.Expiry,
+			root.Cert.KeyUsage,
+			root.Cert.ExtKeyUsage,
+		)
+		pairs = Pairs{
+			"first":  firstPair,
+			"second": secondPair,
+		}
 	})
 	AfterAll(func() {
 		Expect(os.RemoveAll(tmpDir)).Error().NotTo(HaveOccurred())
