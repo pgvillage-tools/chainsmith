@@ -21,17 +21,10 @@ var issueCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		_, err = fmt.Print(out)
+		_, err = fmt.Print(string(out))
 		return err
 	},
 }
-
-type certs struct {
-	Certs intBodies `json:"certs"`
-	Keys  intBodies `json:"private_keys"`
-}
-type intBodies map[string]bodies
-type bodies map[string]string
 
 func issue(cfg *config.Config) ([]byte, error) {
 	chain := cfg.AsChain()

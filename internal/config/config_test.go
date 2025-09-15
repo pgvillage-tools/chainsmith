@@ -12,7 +12,12 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "cmd_run")
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		err := os.RemoveAll(tmpDir)
+		if err != nil {
+			t.Logf("removing tmpd dir %s failed: %e", tmpDir, err)
+		}
+	}()
 	require.NoError(t, err)
 	require.NotEmpty(t, tmpDir)
 	configPath := path.Join(tmpDir, "config.yml")

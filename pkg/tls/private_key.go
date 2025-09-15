@@ -20,7 +20,7 @@ type PrivateKey struct {
 }
 
 // Generate is a method that can generate a Private key.
-func (pk PrivateKey) Generate() error {
+func (pk *PrivateKey) Generate() error {
 	if pk.key != nil {
 		return nil
 	}
@@ -35,7 +35,7 @@ func (pk PrivateKey) Generate() error {
 
 // Encode will encode the rsa.PrivateKey to a PEM byte array and store it in the
 // PEM field
-func (pk PrivateKey) Encode() error {
+func (pk *PrivateKey) Encode() error {
 	if pk.PEM != nil {
 		return nil
 	}
