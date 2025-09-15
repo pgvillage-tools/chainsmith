@@ -40,10 +40,10 @@ type altNames struct {
 }
 
 func splitAlternateNames(alternateNames []string) (
-	subjectAltNames *altNames,
-	err error,
+	*altNames,
+	error,
 ) {
-	subjectAltNames = &altNames{}
+	subjectAltNames := &altNames{}
 	mailRE := regexp.MustCompile(
 		`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	dnsRE := regexp.MustCompile(
@@ -51,17 +51,17 @@ func splitAlternateNames(alternateNames []string) (
 	for _, alternateName := range alternateNames {
 		if ip := net.ParseIP(alternateName); ip != nil {
 			subjectAltNames.ipAddresses = append(subjectAltNames.ipAddresses, ip)
-		} else if uri, err := url.Parse(alternateName); err != nil {
-			subjectAltNames.uris = append(subjectAltNames.uris, uri)
 		} else if mailRE.Match([]byte(alternateName)) {
 			subjectAltNames.eMailAddresses = append(
 				subjectAltNames.eMailAddresses, alternateName)
 		} else if dnsRE.Match([]byte(alternateName)) {
 			subjectAltNames.dnsNames = append(
 				subjectAltNames.dnsNames, alternateName)
+		} else if uri, err := url.Parse(alternateName); err == nil {
+			subjectAltNames.uris = append(subjectAltNames.uris, uri)
 		} else {
 			return nil, fmt.Errorf(
-				"%s is not a known format for a dns name, email adres, ip adres or uri",
+				"%s is not a known format for a dns name, email address, ip address or uri",
 				alternateName,
 			)
 		}
