@@ -18,18 +18,6 @@ type Subject struct {
 	UserID             string `json:"UID"`
 }
 
-// DefaultSubject is used when no subject is set
-var DefaultSubject = Subject{
-	Country:            "NL",
-	CommonName:         "chainsmith",
-	Locality:           "Blarocum",
-	Organisation:       "Nibble-IT",
-	OrganisationalUnit: "postgres",
-	PostalCode:         "1261 WZ",
-	State:              "Utrecht",
-	StreetAddress:      "Binnendelta 1-U2",
-}
-
 // SetCommonName will return a new Subject, but with another CommonName
 func (s Subject) SetCommonName(commonName string) Subject {
 	return Subject{

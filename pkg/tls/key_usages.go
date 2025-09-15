@@ -15,11 +15,6 @@ var stringToKU = map[string]x509.KeyUsage{
 	"keyEncipherment":  x509.KeyUsageKeyEncipherment,
 }
 
-// DefaultKeyUsage is used when no KeyUsages are set
-var DefaultKeyUsage = x509.KeyUsageDataEncipherment |
-	x509.KeyUsageDigitalSignature |
-	x509.KeyUsageKeyEncipherment
-
 // AsKeyUsage converts a internal KeyUsages object to a x509.KeyUsage value
 func (eks KeyUsages) AsKeyUsage() (x509.KeyUsage, error) {
 	var result x509.KeyUsage

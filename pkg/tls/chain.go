@@ -1,15 +1,9 @@
 package tls
 
-import (
-	"time"
-)
-
 // Chain can hold all configuration for a chain.
 type Chain struct {
 	Root          Pair          `json:"root"`
-	Subject       Subject       `json:"subject"`
 	Intermediates Intermediates `json:"intermediates"`
-	Expiry        time.Duration `json:"expiry"`
 	// Path where all files are stored
 	Store string `json:"store"`
 	Keys  Key    `json:"keys"`
@@ -27,7 +21,12 @@ type Key struct {
 // InitializeCA can be used to generate, build and save the CA cert and private
 // key
 func (c *Chain) InitializeCA() error {
-	c.Root.Cert.SetDefaults()
+	c.Root.Cert.SetDefaults(
+		DefaultSubject,
+		DefaultExpiry,
+		DefaultKeyUsage,
+		DefaultExtendedKeyUsages,
+	)
 	c.Root.Cert.IsCa = true
 	c.Root.Cert.AlternateNames = nil
 	if err := c.Root.Generate(); err != nil {
@@ -43,7 +42,7 @@ func (c *Chain) InitializeCA() error {
 // InitializeIntermediates can be used to inititialize all initermediates
 // belonging to this chain
 func (c *Chain) InitializeIntermediates() (err error) {
-	c.Intermediates, err = c.Intermediates.Initialize()
+	c.Intermediates, err = c.Intermediates.Initialize(c.Root)
 	return err
 }
 

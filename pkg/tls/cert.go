@@ -70,18 +70,23 @@ func splitAlternateNames(alternateNames []string) (
 }
 
 // SetDefaults will set default values when none is set
-func (c *Cert) SetDefaults() {
+func (c *Cert) SetDefaults(
+	defaultSubject Subject,
+	defaultExpiry time.Duration,
+	defaultKeyUsage x509.KeyUsage,
+	defaultExtKeyUsage []x509.ExtKeyUsage,
+) {
 	if c.KeyUsage == x509.KeyUsage(0) {
-		c.KeyUsage = DefaultKeyUsage
+		c.KeyUsage = defaultKeyUsage
 	}
 	if len(c.ExtKeyUsage) == 0 {
-		c.ExtKeyUsage = DefaultExtendedKeyUsages
+		c.ExtKeyUsage = defaultExtKeyUsage
 	}
 	if c.Expiry < 24*time.Hour {
-		c.Expiry = 365 * 24 * time.Hour
+		c.Expiry = defaultExpiry
 	}
 	if c.Subject == nil {
-		c.Subject = &DefaultSubject
+		c.Subject = &defaultSubject
 	}
 }
 

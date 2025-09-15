@@ -27,7 +27,10 @@ var issueCmd = &cobra.Command{
 }
 
 func issue(cfg *config.Config) ([]byte, error) {
-	chain := cfg.AsChain()
+	chain, err := cfg.AsChain()
+	if err != nil {
+		return nil, err
+	}
 	if err := chain.InitializeCA(); err != nil {
 		return nil, err
 	}

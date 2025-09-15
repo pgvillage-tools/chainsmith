@@ -14,8 +14,8 @@ type Config struct {
 	Chain              *tls.Chain                   `json:"chain"`
 	RootCAPath         string                       `json:"root_ca_path"`
 	RootExpiry         time.Duration                `json:"root_expiry"`
-	RootKeyUsages      []string                     `json:"root_key_usages"`
-	RootExtraKeyUsages []string                     `json:"root_extra_key_usages"`
+	RootKeyUsages      tls.KeyUsages                `json:"root_key_usages"`
+	RootExtraKeyUsages tls.ExtKeyUsages             `json:"root_extra_key_usages"`
 	RootSubject        tls.Subject                  `json:"subject"`
 	IntermediateCAPath string                       `json:"intermediate_ca_path"`
 	Certificates       map[string]CertificateConfig `json:"certificates"`
@@ -73,14 +73,30 @@ func LoadConfig(configPath string) (*Config, error) {
 
 // AsChain can be used to derive all chain config from all config in the config
 // file
-func (c Config) AsChain() *tls.Chain {
+func (c Config) AsChain() (*tls.Chain, error) {
 	if c.Chain != nil {
-		return c.Chain
+		return c.Chain, nil
 	}
-	return &tls.Chain{
-		Subject:       c.RootSubject,
+	keyUsages, err := c.RootKeyUsages.AsKeyUsage()
+	if err != nil {
+		return nil, err
+	}
+	extraKeyUsages, err := c.RootExtraKeyUsages.AsEKeyUsages()
+	if err != nil {
+		return nil, err
+	}
+
+	c.Chain = &tls.Chain{
+		Root: tls.Pair{
+			Cert: tls.Cert{
+				Subject:     &c.RootSubject,
+				Expiry:      c.RootExpiry,
+				KeyUsage:    keyUsages,
+				ExtKeyUsage: extraKeyUsages,
+			},
+		},
 		Intermediates: c.Intermediates.AsIntermediates(),
-		Expiry:        c.RootExpiry,
 		Store:         c.TmpDir,
 	}
+	return c.Chain, nil
 }

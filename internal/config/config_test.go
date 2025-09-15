@@ -1,6 +1,7 @@
 package config
 
 import (
+	"crypto/x509"
 	"fmt"
 	"os"
 	"path"
@@ -8,7 +9,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/constraints"
 )
+
+func bitCompare[T constraints.Integer](a T, b T) bool {
+	return a&b == b
+}
 
 func TestLoadConfig(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "cmd_run")
@@ -90,13 +96,14 @@ intermediates:
 	assert.Equal(t, serverInt.Name, "server")
 	assert.Len(t, serverInt.Servers, 2)
 	assert.Len(t, serverInt.Clients, 0)
-	assert.Contains(t, serverInt.ExtendedKeyUsages, "serverAuth")
-	assert.Contains(t, serverInt.KeyUsages, "digitalSignature")
+	assert.Contains(t, serverInt.Cert.Cert.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
+
+	assert.True(t, bitCompare(serverInt.Cert.Cert.KeyUsage, x509.KeyUsageDigitalSignature))
 
 	clientInt := config.Intermediates[0]
 	assert.Equal(t, clientInt.Name, "client")
 	assert.Len(t, clientInt.Servers, 0)
 	assert.Len(t, clientInt.Clients, 3)
-	assert.Contains(t, clientInt.ExtendedKeyUsages, "clientAuth")
-	assert.Contains(t, clientInt.KeyUsages, "keyEncipherment")
+	assert.Contains(t, clientInt.Cert.Cert.ExtKeyUsage, x509.ExtKeyUsageClientAuth)
+	assert.True(t, bitCompare(clientInt.Cert.Cert.KeyUsage, x509.KeyUsageKeyEncipherment))
 }
