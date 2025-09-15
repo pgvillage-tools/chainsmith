@@ -8,7 +8,7 @@ type Intermediates map[string]Intermediate
 func (i Intermediates) Initialize(
 	signer Pair,
 ) (Intermediates, error) {
-	for _, intermediate := range i {
+	for iName, intermediate := range i {
 		if err := intermediate.InitializeIntermediate(signer); err != nil {
 			return nil, err
 		}
@@ -18,6 +18,7 @@ func (i Intermediates) Initialize(
 		if err := intermediate.InitializeServers(); err != nil {
 			return i, err
 		}
+		i[iName] = intermediate
 	}
 	return i, nil
 }

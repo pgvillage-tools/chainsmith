@@ -5,6 +5,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/pgvillage-tools/chainsmith/internal/config"
+	"github.com/pgvillage-tools/chainsmith/pkg/tls"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -17,16 +18,21 @@ var issueCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		out, err := issue(cfg)
+		chain, err := issue(cfg)
 		if err != nil {
 			return err
 		}
-		_, err = fmt.Print(string(out))
+		structure := chain.Structure()
+		y, err := yaml.Marshal(structure)
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Print(string(y))
 		return err
 	},
 }
 
-func issue(cfg *config.Config) ([]byte, error) {
+func issue(cfg *config.Config) (*tls.Chain, error) {
 	chain, err := cfg.AsChain()
 	if err != nil {
 		return nil, err
@@ -37,6 +43,5 @@ func issue(cfg *config.Config) ([]byte, error) {
 	if err := chain.InitializeIntermediates(); err != nil {
 		return nil, err
 	}
-	structure := chain.Structure()
-	return yaml.Marshal(structure)
+	return chain, nil
 }
