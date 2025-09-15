@@ -12,7 +12,7 @@ type Subject struct {
 	Organisation       string `json:"O"`
 	OrganisationalUnit string `json:"OU"`
 	PostalCode         string `json:"PC"`
-	SerialNumber       string `json:""`
+	SerialNumber       string `json:"SERIAL"`
 	State              string `json:"ST"`
 	StreetAddress      string `json:"STREET"`
 	UserID             string `json:"UID"`

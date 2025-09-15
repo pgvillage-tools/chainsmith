@@ -15,9 +15,17 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		chain, err := cfg.AsChain()
+		if err != nil {
+			return err
+		}
+		structure := chain.Structure()
 		fmt.Println("Issued Certificates:")
-		for name, certCfg := range cfg.Certificates {
-			fmt.Printf("- %s (%s)\n", name, certCfg.CommonName)
+		for iName, certs := range structure.Certs {
+			fmt.Printf("- intermediate: %s\n", iName)
+			for name := range certs {
+				fmt.Printf("  - %s\n", name)
+			}
 		}
 		return nil
 	},

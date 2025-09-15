@@ -45,6 +45,9 @@ var _ = Describe("PrivateKey", func() {
 			var PEM []byte
 			Expect(pKey.dirty).To(BeTrue())
 			tmpDir, err := os.MkdirTemp("", "privateKeyTest")
+			defer func() {
+				Expect(os.RemoveAll(tmpDir)).Error().NotTo(HaveOccurred())
+			}()
 			Expect(err).Error().NotTo(HaveOccurred())
 			pKeyPath := path.Join(tmpDir, "private_key")
 			pKey.Path = pKeyPath

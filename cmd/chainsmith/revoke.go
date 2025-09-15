@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -14,22 +13,25 @@ var revokeCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(_ *cobra.Command, args []string) error {
 		certName := args[0]
+		// TODO: We need to implement an option te encrypt private keys
+		// After taht we need to read back a chain from disk
+		// After that we can revoke (I guess)
 		cfg, err := loadConfig(viper.GetString("config"))
 		if err != nil {
 			return err
 		}
 
-		certCfg, exists := cfg.Certificates[certName]
-		if !exists {
-			return fmt.Errorf("certificate '%s' not found", certName)
+		chain, err := cfg.AsChain()
+		if err != nil {
+			return err
 		}
-
-		if err := os.Remove(certCfg.CertPath); err != nil {
-			return fmt.Errorf("failed to delete certificate file: %v", err)
+		structure := chain.Structure()
+		if err != nil {
+			return err
 		}
-		if err := os.Remove(certCfg.KeyPath); err != nil {
-			return fmt.Errorf("failed to delete key file: %v", err)
-		}
+		// TODO: We need to create a CRL, and add the cert on the CRL.
+		// Not yet implemented.
+		certName += fmt.Sprintf("%d", len(structure.Certs))
 
 		fmt.Printf("Certificate '%s' revoked successfully.\n", certName)
 		return nil
