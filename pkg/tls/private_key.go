@@ -48,7 +48,7 @@ func (pk *PrivateKey) Encode() error {
 }
 
 // Save can be used to save a Private Key PEM to disk
-func (pk PrivateKey) Save() error {
+func (pk *PrivateKey) Save() error {
 	if !pk.dirty || pk.Path == "" || len(pk.PEM) == 0 {
 		return nil
 	}
@@ -59,6 +59,7 @@ func (pk PrivateKey) Save() error {
 	if err := os.WriteFile(pk.Path, pk.PEM, 0600); err != nil {
 		return fmt.Errorf("failed to write key file: %v", err)
 	}
+	pk.dirty = false
 	return nil
 }
 

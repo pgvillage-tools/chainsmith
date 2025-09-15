@@ -134,6 +134,7 @@ func (c *Cert) Sign(privateKey PrivateKey, signer Pair) error {
 	}
 
 	c.PEM = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+	c.dirty = true
 	return nil
 }
 
