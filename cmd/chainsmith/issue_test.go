@@ -10,17 +10,21 @@ var _ = Describe("cmd/chainsmith/issue", func() {
 	var (
 		cfg = config.Config{}
 	)
-	BeforeAll(func() {
-	})
-	BeforeEach(func() {
-	})
-	AfterEach(func() {
-	})
+	/*
+		BeforeAll(func() {
+		})
+		BeforeEach(func() {
+		})
+		AfterEach(func() {
+		})
+	*/
 	Context("When issuing certificates", func() {
 		It("Should allow creation of a valid Paas", func() {
 			out, err := issue(&cfg)
 			Expect(err).Error().NotTo(HaveOccurred())
 			Expect(out).NotTo(BeEmpty())
+			yaml := string(out)
+			Expect(yaml).To(Equal("yaml"))
 		})
 	})
 })
