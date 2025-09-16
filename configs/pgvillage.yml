@@ -1,0 +1,44 @@
+intermediates:
+  - extendedKeyUsages:
+      - serverAuth
+    keyUsages:
+      - keyEncipherment
+      - dataEncipherment
+      - digitalSignature
+    name: server
+    servers:
+      db-1.local:
+        - db-1.local
+        - 172.30.1.31
+      db-2.local:
+        - db-2.local
+        - 172.30.1.32
+      db-3.local:
+        - db-3.local
+        - 172.30.1.33
+      minio.local:
+        - minio.local
+        - 172.30.1.20
+  - clients:
+      - postgres
+      - avchecker
+      - pgquartz
+      - pgfga
+      - pgroute66
+      - minio
+      - applicatie
+    extendedKeyUsages:
+      - clientAuth
+    keyUsages:
+      - keyEncipherment
+      - dataEncipherment
+      - digitalSignature
+    name: client
+subject:
+  C: NL/postalCode=1261 WZ
+  CN: postgres
+  L: Blaricum/street=Binnendelta 1u2
+  O: Nibble IT
+  OU: PgVillage
+  ST: Utrecht
+tmpdir: /tmp/chainsmith/pgvillage
