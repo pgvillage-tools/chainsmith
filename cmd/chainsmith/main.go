@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	rootCmd.PersistentFlags().String("config", os.Getenv("CMG_CONFIGFILE"), "Path to the config file")
+	rootCmd.PersistentFlags().String("config", os.Getenv("CHAINSMITH_CONFIG"), "Path to the config file")
 	err := viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 	if err != nil {
 		panic(fmt.Errorf("init failed: %w", err).Error())
