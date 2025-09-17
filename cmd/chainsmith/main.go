@@ -26,7 +26,7 @@ func loadConfig(configPath string) (*config.Config, error) {
 		return nil, err
 	}
 	var cfg config.Config
-	err = yaml.Unmarshal(yamlFile, cfg)
+	err = yaml.Unmarshal(yamlFile, &cfg)
 	if err != nil {
 		return nil, err
 	}
