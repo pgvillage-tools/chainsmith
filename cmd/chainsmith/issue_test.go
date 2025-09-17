@@ -9,13 +9,13 @@ import (
 
 var _ = Describe("cmd/chainsmith/issue", func() {
 	const (
-		int1    = "servers"
-		int2    = "clients"
-		s1      = "server1"
-		s1_ip1  = "1.2.3.4"
-		s1_dns1 = "server1.mydomain"
-		c1      = "user1"
-		c2      = "sa2"
+		int1   = "servers"
+		int2   = "clients"
+		s1     = "server1"
+		s1IP1  = "1.2.3.4"
+		s1DNS1 = "server1.mydomain"
+		c1     = "user1"
+		c2     = "sa2"
 	)
 	var (
 		cfg = config.Config{
@@ -25,8 +25,8 @@ var _ = Describe("cmd/chainsmith/issue", func() {
 					Intermediate: tls.Intermediate{
 						Servers: tls.Servers{
 							s1: []string{
-								s1_ip1,
-								s1_dns1,
+								s1IP1,
+								s1DNS1,
 							},
 						},
 					},
@@ -59,13 +59,13 @@ var _ = Describe("cmd/chainsmith/issue", func() {
 			structure := chain.Structure()
 
 			Expect(structure.Certs).To(HaveKey(int1))
-			int1_structure := structure.Certs[int1]
-			Expect(int1_structure).To(HaveKey(s1))
+			int1Structure := structure.Certs[int1]
+			Expect(int1Structure).To(HaveKey(s1))
 
 			Expect(structure.Certs).To(HaveKey(int2))
-			int2_structure := structure.Certs[int2]
-			Expect(int2_structure).To(HaveKey(c1))
-			Expect(int2_structure).To(HaveKey(c2))
+			int2Structure := structure.Certs[int2]
+			Expect(int2Structure).To(HaveKey(c1))
+			Expect(int2Structure).To(HaveKey(c2))
 		})
 	})
 })
