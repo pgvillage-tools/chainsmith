@@ -102,8 +102,8 @@ type ClassicIntermediates []ClassicIntermediate
 
 // ClassicIntermediate exists for historic reasons
 type ClassicIntermediate struct {
-	Name string `json:"name"`
-	Intermediate
+	Name         string `json:"name"`
+	Intermediate `json:",inline"`
 }
 
 // AsIntermediates converts a ClassicIntermediates into a Intermediates
