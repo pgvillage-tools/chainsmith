@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	// DefaultExpiry is the default expiry for
 	DefaultExpiry = 365 * 24 * time.Hour
 
 	// DefaultKeyUsage is used when no KeyUsages are set

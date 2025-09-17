@@ -9,7 +9,6 @@ import (
 )
 
 var _ = Describe("PrivateKey", func() {
-
 	/*
 		BeforeAll(func() {
 		})
@@ -42,7 +41,7 @@ var _ = Describe("PrivateKey", func() {
 			Expect(string(pKey.PEM)).To(HaveSuffix("-----END RSA PRIVATE KEY-----\n"))
 		})
 		It("Should save successfully", func() {
-			var PEM []byte
+			var pem []byte
 			Expect(pKey.dirty).To(BeTrue())
 			tmpDir, err := os.MkdirTemp("", "privateKeyTest")
 			defer func() {
@@ -54,11 +53,11 @@ var _ = Describe("PrivateKey", func() {
 			err = pKey.Save()
 			Expect(err).Error().NotTo(HaveOccurred())
 
-			PEM, err = os.ReadFile(pKeyPath)
+			pem, err = os.ReadFile(pKeyPath)
 			Expect(err).Error().NotTo(HaveOccurred())
-			Expect(PEM).To(Equal(pKey.PEM))
-			Expect(string(PEM)).To(HavePrefix("-----BEGIN RSA PRIVATE KEY-----"))
-			Expect(string(PEM)).To(HaveSuffix("-----END RSA PRIVATE KEY-----\n"))
+			Expect(pem).To(Equal(pKey.PEM))
+			Expect(string(pem)).To(HavePrefix("-----BEGIN RSA PRIVATE KEY-----"))
+			Expect(string(pem)).To(HaveSuffix("-----END RSA PRIVATE KEY-----\n"))
 		})
 	})
 	Context("When requesting public key from private key", Ordered, func() {

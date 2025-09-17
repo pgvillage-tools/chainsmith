@@ -10,11 +10,9 @@ import (
 
 func bitCompare[T constraints.Integer](a T, b T) bool {
 	return (a&b == b)
-
 }
 
 var _ = Describe("KeyUsages", func() {
-
 	var ku = KeyUsages{
 		"dataEncipherment", //x509.KeyUsageDataEncipherment
 		"certSign",         //x509.KeyUsageCertSign
