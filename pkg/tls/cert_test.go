@@ -11,57 +11,57 @@ import (
 
 var _ = Describe("Cert", func() {
 	const (
-		email_s  = "user@example.org"
-		domain_s = "someserver1.subdomain.example.org"
-		ipv4_1s  = "1.2.3.4"
-		ipv4_2s  = "127.0.0.1"
-		ipv6_1s  = "::1"
-		ipv6_2s  = "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
-		ipv6_3s  = "2001:db8::1:0:0:1"
-		ipv6_4s  = "::ffff:192.0.2.128"
-		uri_1s   = "https://private.api.example.org"
-		uri_2s   = "http://public.api.example.org:8080"
+		stringEmail  = "user@example.org"
+		stringDomain = "someserver1.subdomain.example.org"
+		stringIPv41  = "1.2.3.4"
+		stringIPv42  = "127.0.0.1"
+		stringIPv61  = "::1"
+		stringIPv62  = "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+		stringIPv63  = "2001:db8::1:0:0:1"
+		stringIPv64  = "::ffff:192.0.2.128"
+		stringURI1   = "https://private.api.example.org"
+		stringURI2   = "http://public.api.example.org:8080"
 
 		// This becomes a uri
-		//broken_email_s  = "user@@example.org"
-		//broken_domain_s = "someserver1.subdomain.example.org."
+		//broken_stringEmail  = "user@@example.org"
+		//broken_stringDomain = "someserver1.subdomain.example.org."
 		//broken_uri_s    = "https:private.api.example.org"
-		broken_ipv4_s = "1.2.3:4"
-		broken_ipv6_s = ipv6_2s + ":"
+		stringBrokenIPv4s = "1.2.3:4"
+		stringBrokenIPv6s = stringIPv62 + ":"
 	)
 	var (
-		emails           = []string{email_s}
-		domains          = []string{domain_s}
-		ipv4_slist       = []string{ipv4_1s, ipv4_2s}
-		ipv4_1           = net.ParseIP(ipv4_1s)
-		ipv4_2           = net.ParseIP(ipv4_2s)
-		ipv6_slist       = []string{ipv6_1s, ipv6_2s, ipv6_3s, ipv6_4s}
-		ipv6_1           = net.ParseIP(ipv6_1s)
-		ipv6_2           = net.ParseIP(ipv6_2s)
-		ipv6_3           = net.ParseIP(ipv6_3s)
-		ipv6_4           = net.ParseIP(ipv6_4s)
-		uri_slist        = []string{uri_1s, uri_2s}
-		uri_must_compile = func(s string) *url.URL {
+		emails         = []string{stringEmail}
+		domains        = []string{stringDomain}
+		stringListIPv4 = []string{stringIPv41, stringIPv42}
+		ipv4_1         = net.ParseIP(stringIPv41)
+		ipv4_2         = net.ParseIP(stringIPv42)
+		stringListIPv6 = []string{stringIPv61, stringIPv62, stringIPv63, stringIPv64}
+		ipv6_1         = net.ParseIP(stringIPv61)
+		ipv6_2         = net.ParseIP(stringIPv62)
+		ipv6_3         = net.ParseIP(stringIPv63)
+		ipv6_4         = net.ParseIP(stringIPv64)
+		stringListURIs = []string{stringURI1, stringURI2}
+		uriMustCompile = func(s string) *url.URL {
 			uri, err := url.Parse(s)
 			if err != nil {
 				panic(fmt.Sprintf("%s could not be compiled: %e", s, err))
 			}
 			return uri
 		}
-		uri_1           = uri_must_compile(uri_1s)
-		uri_2           = uri_must_compile(uri_2s)
+		uri1            = uriMustCompile(stringURI1)
+		uri2            = uriMustCompile(stringURI2)
 		workingAltNames = append(
 			append(
 				append(
 					append(emails, domains...),
-					ipv4_slist...,
+					stringListIPv4...,
 				),
-				ipv6_slist...,
+				stringListIPv6...,
 			),
-			uri_slist...)
+			stringListURIs...)
 		invalidAltNames = []string{
-			broken_ipv4_s,
-			broken_ipv6_s,
+			stringBrokenIPv4s,
+			stringBrokenIPv6s,
 		}
 	)
 	/*
@@ -78,17 +78,17 @@ var _ = Describe("Cert", func() {
 			Expect(err).Error().NotTo(HaveOccurred())
 
 			Expect(result.dnsNames).To(HaveLen(len(domains)))
-			Expect(result.dnsNames).To(ContainElements(domain_s))
+			Expect(result.dnsNames).To(ContainElements(stringDomain))
 
 			Expect(result.eMailAddresses).To(HaveLen(len(emails)))
-			Expect(result.eMailAddresses).To(ContainElements(email_s))
+			Expect(result.eMailAddresses).To(ContainElements(stringEmail))
 
-			Expect(result.ipAddresses).To(HaveLen(len(ipv4_slist) + len(ipv6_slist)))
+			Expect(result.ipAddresses).To(HaveLen(len(stringListIPv4) + len(stringListIPv6)))
 			Expect(result.ipAddresses).To(ContainElements(ipv4_1, ipv4_2, ipv6_1, ipv6_2, ipv6_3, ipv6_4))
 
-			Expect(result.uris).To(HaveLen(len(uri_slist)))
-			Expect(result.uris).To(ContainElements(uri_2))
-			Expect(result.uris).To(ContainElements(uri_1))
+			Expect(result.uris).To(HaveLen(len(stringListURIs)))
+			Expect(result.uris).To(ContainElements(uri2))
+			Expect(result.uris).To(ContainElements(uri1))
 		})
 		It("Should not work with invalid values", func() {
 			for _, invalid := range invalidAltNames {
