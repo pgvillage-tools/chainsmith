@@ -1,5 +1,7 @@
 package tls
 
+import "fmt"
+
 // Chain can hold all configuration for a chain.
 type Chain struct {
 	Root          Pair          `json:"root"`
@@ -60,7 +62,13 @@ func (c *Chain) Structure() ChainStructure {
 		Keys:  map[string]map[string]string{},
 	}
 	for iName, intermediate := range c.Intermediates {
-		certs := map[string]string{}
+		certs := map[string]string{
+			"chain": fmt.Sprintf(
+				"%s%s",
+				intermediate.Cert.Cert.PEM,
+				c.Root.Cert.PEM,
+			),
+		}
 		keys := map[string]string{}
 		for cName, child := range intermediate.children {
 			certs[cName] = string(child.Cert.PEM)
