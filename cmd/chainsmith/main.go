@@ -1,4 +1,4 @@
-// Package main is the m,ain entrypoint for this commandline utility
+// Package main is the main entrypoint for this commandline utility
 package main
 
 import (
