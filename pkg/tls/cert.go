@@ -104,18 +104,24 @@ func (c *Cert) Generate() error {
 	}
 
 	now := time.Now()
+	var maxPathLen int
+	if c.IsCa {
+		maxPathLen = 1
+	}
 	c.cert = &x509.Certificate{
-		SerialNumber:   serialNumber,
-		Subject:        c.Subject.AsPkixName(),
-		NotBefore:      now,
-		NotAfter:       now.Add(c.Expiry),
-		KeyUsage:       c.KeyUsage,
-		ExtKeyUsage:    c.ExtKeyUsage,
-		IsCA:           c.IsCa,
-		DNSNames:       altNames.dnsNames,
-		EmailAddresses: altNames.eMailAddresses,
-		IPAddresses:    altNames.ipAddresses,
-		URIs:           altNames.uris,
+		SerialNumber:          serialNumber,
+		Subject:               c.Subject.AsPkixName(),
+		NotBefore:             now,
+		NotAfter:              now.Add(c.Expiry),
+		KeyUsage:              c.KeyUsage,
+		ExtKeyUsage:           c.ExtKeyUsage,
+		BasicConstraintsValid: true,
+		IsCA:                  c.IsCa,
+		MaxPathLen:            maxPathLen,
+		DNSNames:              altNames.dnsNames,
+		EmailAddresses:        altNames.eMailAddresses,
+		IPAddresses:           altNames.ipAddresses,
+		URIs:                  altNames.uris,
 	}
 	c.PEM = nil
 	return nil

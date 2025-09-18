@@ -13,6 +13,7 @@ var stringToKU = map[string]x509.KeyUsage{
 	"digitalSignature": x509.KeyUsageDigitalSignature,
 	"certSign":         x509.KeyUsageCertSign,
 	"keyEncipherment":  x509.KeyUsageKeyEncipherment,
+	"crlSign":          x509.KeyUsageCRLSign,
 }
 
 // AsKeyUsage converts a internal KeyUsages object to a x509.KeyUsage value

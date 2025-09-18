@@ -1,5 +1,7 @@
 package tls
 
+import "crypto/x509"
+
 // Intermediates holds all intermediates that are configured
 type Intermediates map[string]Intermediate
 
@@ -9,7 +11,7 @@ func (i Intermediates) Initialize(
 	signer Pair,
 ) (Intermediates, error) {
 	for iName, intermediate := range i {
-		if err := intermediate.InitializeIntermediate(signer); err != nil {
+		if err := intermediate.InitializeIntermediate(iName, signer); err != nil {
 			return nil, err
 		}
 		if err := intermediate.InitializeClients(); err != nil {
@@ -34,14 +36,18 @@ type Intermediate struct {
 
 // InitializeIntermediate can be used to initialize the intermediate
 func (i *Intermediate) InitializeIntermediate(
+	name string,
 	signer Pair,
 ) error {
 	i.Cert.Cert.SetDefaults(
-		*signer.Cert.Subject,
+		signer.Cert.Subject.SetCommonName(name),
 		signer.Cert.Expiry,
 		signer.Cert.KeyUsage,
 		signer.Cert.ExtKeyUsage,
 	)
+	i.Cert.Cert.IsCa = true
+	// Enable cert sign for intermediates
+	i.Cert.Cert.KeyUsage |= x509.KeyUsageCertSign
 	return i.Cert.Process(signer)
 }
 
@@ -62,6 +68,7 @@ func (i *Intermediate) InitializeServers() error {
 				AlternateNames: addresses,
 			},
 		}
+		pair.Cert.KeyUsage &^= x509.KeyUsageCertSign
 		err := pair.Process(i.Cert)
 		if err != nil {
 			return err
@@ -87,6 +94,8 @@ func (i *Intermediate) InitializeClients() error {
 				ExtKeyUsage: i.Cert.Cert.ExtKeyUsage,
 			},
 		}
+		// disable cert-sign for certs
+		pair.Cert.KeyUsage &^= x509.KeyUsageCertSign
 		err := pair.Process(i.Cert)
 		if err != nil {
 			return err
