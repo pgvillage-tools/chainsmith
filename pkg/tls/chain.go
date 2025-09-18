@@ -1,6 +1,9 @@
 package tls
 
-import "fmt"
+import (
+	"crypto/x509"
+	"fmt"
+)
 
 // Chain can hold all configuration for a chain.
 type Chain struct {
@@ -29,6 +32,8 @@ func (c *Chain) InitializeCA() error {
 		DefaultKeyUsage,
 		DefaultExtendedKeyUsages,
 	)
+	// Enable cert sign for intermediates
+	c.Root.Cert.KeyUsage |= x509.KeyUsageCertSign
 	c.Root.Cert.IsCa = true
 	c.Root.Cert.AlternateNames = nil
 	if err := c.Root.Generate(); err != nil {
