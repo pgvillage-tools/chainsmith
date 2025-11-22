@@ -36,11 +36,12 @@ var _ = Describe("Chain", func() {
 		})
 		It("should be a self signed root cert", func() {
 			rootCert := chain.Root.Cert.cert
-			rootCert.CheckSignature(
+			validationResult := rootCert.CheckSignature(
 				rootCert.SignatureAlgorithm,
 				rootCert.RawTBSCertificate,
 				rootCert.Signature,
 			)
+			Expect(validationResult).Error().NotTo(HaveOccurred())
 		})
 		It("Should properly initialize intermediates", func() {
 			//InitializeIntermediates
@@ -68,11 +69,12 @@ var _ = Describe("Chain", func() {
 		It("should be a root signed intermediate", func() {
 			rootCert := chain.Root.Cert.cert
 			for _, intermediate := range chain.Intermediates {
-				rootCert.CheckSignature(
+				validationResult := rootCert.CheckSignature(
 					rootCert.SignatureAlgorithm,
 					intermediate.Cert.Cert.cert.RawTBSCertificate,
 					intermediate.Cert.Cert.cert.Signature,
 				)
+				Expect(validationResult).Error().NotTo(HaveOccurred())
 			}
 		})
 		It("Should properly generate structure", func() {
@@ -99,11 +101,12 @@ var _ = Describe("Chain", func() {
 			for _, imdt := range chain.Intermediates {
 				iCert := imdt.Cert.Cert.cert
 				for _, child := range imdt.children {
-					iCert.CheckSignature(
+					validationResult := iCert.CheckSignature(
 						iCert.SignatureAlgorithm,
 						child.Cert.cert.RawTBSCertificate,
 						child.Cert.cert.Signature,
 					)
+					Expect(validationResult).Error().NotTo(HaveOccurred())
 				}
 			}
 		})
