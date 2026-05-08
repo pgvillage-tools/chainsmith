@@ -4,6 +4,9 @@ on:
     types:
       - published
 
+env:
+  GOLANG_VERSION: '1.26'
+  
 jobs:
   binaries:
     runs-on: ubuntu-latest
@@ -11,20 +14,22 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v6
-
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+       
       - name: Download cyclonedx-gomod
         uses: CycloneDX/gh-gomod-generate-sbom@v2
         with:
           version: v1
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: '~> v2'
