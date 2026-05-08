@@ -5,7 +5,7 @@ on:
       - published
 
 env:
-  GOLANG_VERSION: '1.25.x'
+  GOLANG_VERSION: '1.26'
   
 jobs:
   binaries:
