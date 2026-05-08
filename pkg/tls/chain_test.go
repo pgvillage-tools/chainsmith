@@ -34,6 +34,15 @@ var _ = Describe("Chain", func() {
 			Expect(string(chain.Root.PrivateKey.PEM)).To(
 				HavePrefix("-----BEGIN RSA PRIVATE KEY-----"))
 		})
+		It("should be a self signed root cert", func() {
+			rootCert := chain.Root.Cert.cert
+			validationResult := rootCert.CheckSignature(
+				rootCert.SignatureAlgorithm,
+				rootCert.RawTBSCertificate,
+				rootCert.Signature,
+			)
+			Expect(validationResult).Error().NotTo(HaveOccurred())
+		})
 		It("Should properly initialize intermediates", func() {
 			//InitializeIntermediates
 			Expect(chain.InitializeIntermediates()).Error().NotTo(
@@ -57,6 +66,17 @@ var _ = Describe("Chain", func() {
 			Expect(string(server1.PrivateKey.PEM)).To(
 				HavePrefix("-----BEGIN RSA PRIVATE KEY-----"))
 		})
+		It("should be a root signed intermediate", func() {
+			rootCert := chain.Root.Cert.cert
+			for _, intermediate := range chain.Intermediates {
+				validationResult := rootCert.CheckSignature(
+					rootCert.SignatureAlgorithm,
+					intermediate.Cert.Cert.cert.RawTBSCertificate,
+					intermediate.Cert.Cert.cert.Signature,
+				)
+				Expect(validationResult).Error().NotTo(HaveOccurred())
+			}
+		})
 		It("Should properly generate structure", func() {
 			//Structure
 			structure := chain.Structure()
@@ -76,6 +96,19 @@ var _ = Describe("Chain", func() {
 				)).To(
 				Equal(2))
 			Expect(string(i1Chain)).NotTo(ContainSubstring("\n\n"))
+		})
+		It("should be an intermediate signed server / client cert", func() {
+			for _, imdt := range chain.Intermediates {
+				iCert := imdt.Cert.Cert.cert
+				for _, child := range imdt.children {
+					validationResult := iCert.CheckSignature(
+						iCert.SignatureAlgorithm,
+						child.Cert.cert.RawTBSCertificate,
+						child.Cert.cert.Signature,
+					)
+					Expect(validationResult).Error().NotTo(HaveOccurred())
+				}
+			}
 		})
 	})
 })
