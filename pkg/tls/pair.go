@@ -7,8 +7,7 @@ type Pairs map[string]Pair
 // We use copy on write and return  the copy
 func (p Pairs) Generate() (Pairs, error) {
 	for name, pair := range p {
-		err := pair.Generate()
-		if err != nil {
+		if err := pair.Generate(); err != nil {
 			return p, err
 		}
 		p[name] = pair
